@@ -1,9 +1,8 @@
 name: Update Latest Version
 
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: "*/10 * * * *"  # This cron expression runs every 10 minutes
 
 jobs:
   update_version:
