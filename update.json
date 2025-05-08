@@ -1,1 +1,15 @@
-{"release": "1.0.0", "beta": "1.0.4.1", "alpha": "1.0.4.3+alpha"}
+{
+  "version": "1.0.4.3+alpha",
+  "release": {
+    "version": "1.0.4.3+alpha",
+    "url": "https://cdn.modrinth.com/data/MTOTFlRo/versions/RRJY5usw/knights_and_castles-1.0.4.3%2Balpha-forge-1.20.1.jar"
+  },
+  "beta": {
+    "version": "1.0.4.2",
+    "url": "https://cdn.modrinth.com/data/MTOTFlRo/versions/lyMS0Lhl/knights_and_castles-1.0.4.2-forge-1.20.1.jar"
+  },
+  "alpha": {
+    "version": "1.0.4.1",
+    "url": "https://cdn.modrinth.com/data/MTOTFlRo/versions/Jl988prk/knights_and_castles-1.0.4%2Bbugfix-forge-1.20.1.jar"
+  }
+}
