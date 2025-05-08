@@ -10,20 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Git
-      run: |
-        git config user.name "github-actions"
-        git config user.email "github-actions@github.com"
+      # Step 2: Set up Git
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
-    - name: Update versions in update.json
-      run: |
-        echo '{"release": "1.0.0", "beta": "1.0.4.1", "alpha": "1.0.4.3+alpha"}' > update.json
+      # Step 3: Modify the update.json file (just an example of file modification)
+      - name: Update versions in update.json
+        run: |
+          echo '{"release": "1.0.0", "beta": "1.0.4.1", "alpha": "1.0.4.3+alpha"}' > update.json
 
-    - name: Commit changes
-      run: |
-        git add update.json
-        git commit -m "Update to latest versions"
-        git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/gamerbenyt/KNC-json-update-URL.git HEAD:main
+      # Step 4: Commit and push changes using the custom token
+      - name: Commit and push changes
+        run: |
+          git add update.json
+          git commit -m "Update to latest versions"
+          git push https://x-access-token:${{ secrets.GH_CUSTOM_TOKEN }}@github.com/gamerbenyt/KNC-json-update-URL.git HEAD:main
