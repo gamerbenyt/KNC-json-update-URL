@@ -2,7 +2,7 @@ name: Update Latest Version
 
 on:
   schedule:
-    - cron: "*/6 * * * *"  # This cron expression runs every minute
+    - cron: "*/6 * * * *"  # This cron expression runs every 6 minutes
   workflow_dispatch:  # This allows manual trigger via GitHub UI
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
             }
           }" > update.json
 
-      # Step 5: Commit and push the update.json file (always commit even if no changes)
+      # Step 5: Commit and push update.json (always commit even if no changes)
       - name: Commit and push update.json
         run: |
           git add update.json
