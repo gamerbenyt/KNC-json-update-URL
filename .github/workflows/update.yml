@@ -1,4 +1,4 @@
-name: Update Versions
+name: Update Latest Version
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  update_versions:
+  update_version:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,41 +24,24 @@ jobs:
       - name: Fetch latest release information from Modrinth
         id: fetch_release
         run: |
+          # Fetch the latest version info from Modrinth
           latest_release=$(curl -s https://api.modrinth.com/v2/project/knights-and-castles/version)
 
-          # Extract versions by channel: release, beta, and alpha
-          release_version=$(echo $latest_release | jq -r '.[] | select(.tags | index("release")) | .version_number') # Latest release
-          beta_version=$(echo $latest_release | jq -r '.[] | select(.tags | index("beta")) | .version_number') # Latest beta
-          alpha_version=$(echo $latest_release | jq -r '.[] | select(.tags | index("alpha")) | .version_number') # Latest alpha
+          # Extract the latest version and URL for the most recent version
+          latest_version=$(echo $latest_release | jq -r '.[0].version_number') # Latest version
+          latest_url=$(echo $latest_release | jq -r '.[0].files[0].url') # Download URL for latest version
 
-          release_url=$(echo $latest_release | jq -r '.[] | select(.tags | index("release")) | .files[0].url') # Download URL for release
-          beta_url=$(echo $latest_release | jq -r '.[] | select(.tags | index("beta")) | .files[0].url') # Download URL for beta
-          alpha_url=$(echo $latest_release | jq -r '.[] | select(.tags | index("alpha")) | .files[0].url') # Download URL for alpha
-
-          # Output the versions and URLs for later steps
-          echo "::set-output name=release_version::$release_version"
-          echo "::set-output name=beta_version::$beta_version"
-          echo "::set-output name=alpha_version::$alpha_version"
-          echo "::set-output name=release_url::$release_url"
-          echo "::set-output name=beta_url::$beta_url"
-          echo "::set-output name=alpha_url::$alpha_url"
+          # Output the version and URL for later steps
+          echo "::set-output name=latest_version::$latest_version"
+          echo "::set-output name=latest_url::$latest_url"
 
       # Step 4: Create the update.json file
       - name: Create update.json
         run: |
           echo "{
-            \"version\": \"${{ steps.fetch_release.outputs.release_version }}\",
-            \"release\": {
-              \"version\": \"${{ steps.fetch_release.outputs.release_version }}\",
-              \"url\": \"${{ steps.fetch_release.outputs.release_url }}\"
-            },
-            \"beta\": {
-              \"version\": \"${{ steps.fetch_release.outputs.beta_version }}\",
-              \"url\": \"${{ steps.fetch_release.outputs.beta_url }}\"
-            },
-            \"alpha\": {
-              \"version\": \"${{ steps.fetch_release.outputs.alpha_version }}\",
-              \"url\": \"${{ steps.fetch_release.outputs.alpha_url }}\"
+            \"latest\": {
+              \"version\": \"${{ steps.fetch_release.outputs.latest_version }}\",
+              \"url\": \"${{ steps.fetch_release.outputs.latest_url }}\"
             }
           }" > update.json
 
@@ -66,5 +49,5 @@ jobs:
       - name: Commit and push update.json
         run: |
           git add update.json
-          git commit -m "Update to latest versions"
+          git commit -m "Update to latest version"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/gamerbenyt/KNC-json-update-URL.git HEAD:main
