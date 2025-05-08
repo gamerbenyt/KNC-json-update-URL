@@ -8,7 +8,7 @@ on:
 jobs:
   update_versions:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -20,8 +20,6 @@ jobs:
 
     - name: Update versions in update.json
       run: |
-        # Your script or command that modifies update.json goes here
-        # For example, a simple version update
         echo '{"release": "1.0.0", "beta": "1.0.4.1", "alpha": "1.0.4.3+alpha"}' > update.json
 
     - name: Commit changes
