@@ -1,0 +1,43 @@
+name: Update Forge update.json from Modrinth
+
+on:
+  schedule:
+    - cron: "0 * * * *" # Every hour
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Fetch latest version from Modrinth
+        id: modrinth
+        run: |
+          curl -s https://api.modrinth.com/v2/project/knights-and-castles/version \
+          | jq '[.[] | select(.loaders[] == "forge") | select(.game_versions[] == "1.20.1")] | sort_by(.date_published) | last | .version_number' \
+          > latest.txt
+
+      - name: Update update.json
+        run: |
+          VERSION=$(cat latest.txt | tr -d '"')
+          echo "Updating to version: $VERSION"
+
+          cat <<EOF > update.json
+          {
+            "knights_and_castles": {
+              "homepage": "https://modrinth.com/mod/knights-and-castles",
+              "promos": {
+                "1.20.1-latest": "$VERSION"
+              }
+            }
+          }
+          EOF
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add update.json
+          git commit -m "Update to latest Modrinth version" || echo "No changes"
+          git push
