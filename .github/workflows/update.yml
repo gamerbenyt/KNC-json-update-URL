@@ -1,85 +1,31 @@
-name: Update Forge update.json from Modrinth
+name: Update Versions
 
 on:
-  schedule:
-    - cron: "*/10 * * * *"  # Every 10 minutes
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  update:
+  update_versions:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Install jq
-        run: sudo apt-get install jq
+    - name: Set up Git
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
 
-      - name: Fetch versions from Modrinth
-        id: fetch_versions
-        run: |
-          curl -s https://api.modrinth.com/v2/project/knights-and-castles/version \
-          | jq '[.[] | select(.loaders[] == "forge") | select(.game_versions[] == "1.20.1")] | sort_by(.date_published)' > versions.json
+    - name: Update versions in update.json
+      run: |
+        # Your script or command that modifies update.json goes here
+        # For example, a simple version update
+        echo '{"release": "1.0.0", "beta": "1.0.4.1", "alpha": "1.0.4.3+alpha"}' > update.json
 
-      - name: Load existing versions from update.json
-        id: current_versions
-        run: |
-          if [ -f update.json ]; then
-            jq -r '.knights_and_castles.promos' update.json > current_promos.json
-          else
-            echo "{}" > current_promos.json
-          fi
-
-      - name: Filter and categorize versions (alpha, beta, release)
-        id: categorize_versions
-        run: |
-          ALPHA=$(jq '[.[] | select(.version_type == "alpha")] | sort_by(.date_published) | last | .version_number' versions.json)
-          BETA=$(jq '[.[] | select(.version_type == "beta")] | sort_by(.date_published) | last | .version_number' versions.json)
-          RELEASE=$(jq '[.[] | select(.version_type == "release")] | sort_by(.date_published) | last | .version_number' versions.json)
-          
-          echo "ALPHA=$ALPHA" >> $GITHUB_ENV
-          echo "BETA=$BETA" >> $GITHUB_ENV
-          echo "RELEASE=$RELEASE" >> $GITHUB_ENV
-
-      - name: Compare versions to current ones
-        id: compare_versions
-        run: |
-          ALPHA_CURRENT=$(jq -r '.["1.20.1-alpha"]' current_promos.json)
-          BETA_CURRENT=$(jq -r '.["1.20.1-beta"]' current_promos.json)
-          RELEASE_CURRENT=$(jq -r '.["1.20.1-latest"]' current_promos.json)
-
-          echo "ALPHA_CURRENT=$ALPHA_CURRENT" >> $GITHUB_ENV
-          echo "BETA_CURRENT=$BETA_CURRENT" >> $GITHUB_ENV
-          echo "RELEASE_CURRENT=$RELEASE_CURRENT" >> $GITHUB_ENV
-
-          if [ "$ALPHA" != "$ALPHA_CURRENT" ] || [ "$BETA" != "$BETA_CURRENT" ] || [ "$RELEASE" != "$RELEASE_CURRENT" ]; then
-            echo "changed=true" >> $GITHUB_ENV
-          else
-            echo "changed=false" >> $GITHUB_ENV
-          fi
-
-      - name: Update update.json if versions changed
-        if: env.changed == 'true'
-        run: |
-          echo "Updating update.json with new versions"
-
-          cat <<EOF > update.json
-          {
-            "knights_and_castles": {
-              "homepage": "https://modrinth.com/mod/knights-and-castles",
-              "promos": {
-                "1.20.1-latest": "$RELEASE",
-                "1.20.1-beta": "$BETA",
-                "1.20.1-alpha": "$ALPHA"
-              }
-            }
-          }
-          EOF
-
-      - name: Commit and push changes if versions changed
-        if: env.changed == 'true'
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add update.json
-          git commit -m "Update to latest versions: release=$RELEASE, beta=$BETA, alpha=$ALPHA" || echo "No changes"
-          git push
+    - name: Commit changes
+      run: |
+        git add update.json
+        git commit -m "Update to latest versions"
+        git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/gamerbenyt/KNC-json-update-URL.git HEAD:main
