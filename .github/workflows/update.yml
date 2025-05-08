@@ -2,7 +2,7 @@ name: Update Latest Version
 
 on:
   schedule:
-    - cron: "*/1 * * * *"  # This cron expression runs every minute
+    - cron: "*/6 * * * *"  # This cron expression runs every minute
   workflow_dispatch:  # This allows manual trigger via GitHub UI
 
 jobs:
