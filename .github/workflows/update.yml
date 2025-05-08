@@ -35,9 +35,10 @@ jobs:
           echo "::set-output name=latest_version::$latest_version"
           echo "::set-output name=latest_url::$latest_url"
 
-      # Step 4: Create the update.json file
-      - name: Create update.json
+      # Step 4: Clear and create update.json file
+      - name: Clear and create update.json
         run: |
+          # Clear the existing update.json file (if any) and create a new one
           echo "{
             \"latest\": {
               \"version\": \"${{ steps.fetch_release.outputs.latest_version }}\",
@@ -45,9 +46,9 @@ jobs:
             }
           }" > update.json
 
-      # Step 5: Commit and push update.json (always commit even if no changes)
+      # Step 5: Commit and push the updated update.json file (always commit even if no changes)
       - name: Commit and push update.json
         run: |
           git add update.json
-          git commit --allow-empty -m "Update to latest version"
+          git commit --allow-empty -m "Clear and update to latest version"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/gamerbenyt/KNC-json-update-URL.git HEAD:main
