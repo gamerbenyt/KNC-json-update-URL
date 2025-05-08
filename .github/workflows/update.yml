@@ -2,8 +2,8 @@ name: Update Latest Version
 
 on:
   schedule:
-    - cron: "*/5 * * * *"  # This cron expression runs every 5 minutes
-  workflow_dispatch: # To trigger manually as well
+    - cron: "*/1 * * * *"  # This cron expression runs every minute
+  workflow_dispatch:  # This allows manual trigger via GitHub UI
 
 jobs:
   update_version:
