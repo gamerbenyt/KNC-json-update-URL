@@ -25,15 +25,15 @@ jobs:
         id: fetch_release
         run: |
           latest_release=$(curl -s https://api.modrinth.com/v2/project/knights-and-castles/version)
-          
-          # Extract the download URLs for release, beta, and alpha versions
-          release_version=$(echo $latest_release | jq -r '.[0].version_number') # Latest release
-          beta_version=$(echo $latest_release | jq -r '.[1].version_number') # Latest beta
-          alpha_version=$(echo $latest_release | jq -r '.[2].version_number') # Latest alpha
 
-          release_url=$(echo $latest_release | jq -r '.[0].files[0].url') # Download URL for release
-          beta_url=$(echo $latest_release | jq -r '.[1].files[0].url') # Download URL for beta
-          alpha_url=$(echo $latest_release | jq -r '.[2].files[0].url') # Download URL for alpha
+          # Extract versions by channel: release, beta, and alpha
+          release_version=$(echo $latest_release | jq -r '.[] | select(.tags | index("release")) | .version_number') # Latest release
+          beta_version=$(echo $latest_release | jq -r '.[] | select(.tags | index("beta")) | .version_number') # Latest beta
+          alpha_version=$(echo $latest_release | jq -r '.[] | select(.tags | index("alpha")) | .version_number') # Latest alpha
+
+          release_url=$(echo $latest_release | jq -r '.[] | select(.tags | index("release")) | .files[0].url') # Download URL for release
+          beta_url=$(echo $latest_release | jq -r '.[] | select(.tags | index("beta")) | .files[0].url') # Download URL for beta
+          alpha_url=$(echo $latest_release | jq -r '.[] | select(.tags | index("alpha")) | .files[0].url') # Download URL for alpha
 
           # Output the versions and URLs for later steps
           echo "::set-output name=release_version::$release_version"
