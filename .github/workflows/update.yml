@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "*/6 * * * *"  # This cron expression runs every 6 minutes
   workflow_dispatch:  # This allows manual trigger via GitHub UI
+  push:
+    paths:
+      - ".github/workflows/*"  # Triggers when the workflow YAML files are modified
 
 jobs:
   update_version:
@@ -35,20 +38,40 @@ jobs:
           echo "::set-output name=latest_version::$latest_version"
           echo "::set-output name=latest_url::$latest_url"
 
-      # Step 4: Clear and create update.json file
-      - name: Clear and create update.json
+      # Step 4: Clear the update.json file
+      - name: Clear update.json file
         run: |
-          # Clear the existing update.json file (if any) and create a new one
+          # Clear the existing update.json file (if any)
+          echo "{}" > update.json  # Empty the JSON content
+
+      # Step 5: Save the cleared update.json
+      - name: Save cleared update.json
+        run: |
+          echo "{}" > update.json  # Ensure it's saved as an empty JSON object
+
+      # Step 6: Update the update.json file with the latest version info
+      - name: Update update.json with latest version info
+        run: |
           echo "{
             \"latest\": {
               \"version\": \"${{ steps.fetch_release.outputs.latest_version }}\",
               \"url\": \"${{ steps.fetch_release.outputs.latest_url }}\"
             }
-          }" > update.json
+          }" > update.json  # Overwrite the file with the latest data
 
-      # Step 5: Commit and push the updated update.json file (always commit even if no changes)
+      # Step 7: Save the updated update.json file
+      - name: Save updated update.json
+        run: |
+          echo "{
+            \"latest\": {
+              \"version\": \"${{ steps.fetch_release.outputs.latest_version }}\",
+              \"url\": \"${{ steps.fetch_release.outputs.latest_url }}\"
+            }
+          }" > update.json  # Ensure the file is saved with updated content
+
+      # Step 8: Commit and push the updated update.json file
       - name: Commit and push update.json
         run: |
           git add update.json
-          git commit --allow-empty -m "Clear and update to latest version"
+          git commit --allow-empty -m "Update to latest version"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/gamerbenyt/KNC-json-update-URL.git HEAD:main
