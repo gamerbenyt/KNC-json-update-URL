@@ -20,14 +20,51 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-      # Step 3: Modify the update.json file (just an example of file modification)
-      - name: Update versions in update.json
+      # Step 3: Get the latest release information from Modrinth API
+      - name: Fetch latest release information from Modrinth
+        id: fetch_release
         run: |
-          echo '{"release": "1.0.0", "beta": "1.0.4.1", "alpha": "1.0.4.3+alpha"}' > update.json
+          latest_release=$(curl -s https://api.modrinth.com/v2/project/knights-and-castles/version)
+          
+          # Extract the download URLs for release, beta, and alpha versions
+          release_version=$(echo $latest_release | jq -r '.[0].version_number') # Latest release
+          beta_version=$(echo $latest_release | jq -r '.[1].version_number') # Latest beta
+          alpha_version=$(echo $latest_release | jq -r '.[2].version_number') # Latest alpha
 
-      # Step 4: Commit and push changes using the custom token
-      - name: Commit and push changes
+          release_url=$(echo $latest_release | jq -r '.[0].files[0].url') # Download URL for release
+          beta_url=$(echo $latest_release | jq -r '.[1].files[0].url') # Download URL for beta
+          alpha_url=$(echo $latest_release | jq -r '.[2].files[0].url') # Download URL for alpha
+
+          # Output the versions and URLs for later steps
+          echo "::set-output name=release_version::$release_version"
+          echo "::set-output name=beta_version::$beta_version"
+          echo "::set-output name=alpha_version::$alpha_version"
+          echo "::set-output name=release_url::$release_url"
+          echo "::set-output name=beta_url::$beta_url"
+          echo "::set-output name=alpha_url::$alpha_url"
+
+      # Step 4: Create the update.json file
+      - name: Create update.json
+        run: |
+          echo "{
+            \"version\": \"${{ steps.fetch_release.outputs.release_version }}\",
+            \"release\": {
+              \"version\": \"${{ steps.fetch_release.outputs.release_version }}\",
+              \"url\": \"${{ steps.fetch_release.outputs.release_url }}\"
+            },
+            \"beta\": {
+              \"version\": \"${{ steps.fetch_release.outputs.beta_version }}\",
+              \"url\": \"${{ steps.fetch_release.outputs.beta_url }}\"
+            },
+            \"alpha\": {
+              \"version\": \"${{ steps.fetch_release.outputs.alpha_version }}\",
+              \"url\": \"${{ steps.fetch_release.outputs.alpha_url }}\"
+            }
+          }" > update.json
+
+      # Step 5: Commit and push the update.json file
+      - name: Commit and push update.json
         run: |
           git add update.json
           git commit -m "Update to latest versions"
-          git push https://x-access-token:${{ secrets.GH_CUSTOM_TOKEN }}@github.com/gamerbenyt/KNC-json-update-URL.git HEAD:main
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/gamerbenyt/KNC-json-update-URL.git HEAD:main
